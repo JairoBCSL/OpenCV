@@ -1,0 +1,62 @@
+# Programas de PDI
+
+# 2 Manipulação de pixels de uma imagem
+
+## 2.2 Exercício
+
+### Regions.cpp
+Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+
+[source,cpp]
+----
+//make regions
+//./regions nome_imagem xmin ymin xmax ymax
+#include <iostream>
+#include <opencv2/opencv.hpp>
+using namespace cv;
+
+int main(int argc, char** argv){
+  Mat image;
+  int largura, altura, xmin, ymin, xmax, ymax;
+
+  CvPoint p;
+  image = imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data){
+    std::cout << "imagem nao carregou corretamente\n";
+    return(-1);
+  }
+  xmin = atoi(argv[2]);
+  ymin = atoi(argv[3]);
+  xmax = atoi(argv[4]);
+  ymax = atoi(argv[5]);
+
+  largura=image.size().width;
+  altura=image.size().height;
+
+  p.x=largura-1;
+  p.y=altura-1;
+
+  for(int i=xmin; i<xmax; i++){
+    for(int j=ymin; j<ymax; j++){
+      image.at<uchar>(i,j)=(unsigned char)(256-(int)image.at<uchar>(i,j));
+    }
+  }
+
+  imshow("Processada", image);
+  imwrite("negativo.png", image);
+  
+  waitKey();
+  return 0;
+}	
+----	
+
+----
+For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+
+### Jekyll Themes
+
+Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/JairoBCSL/OpenCV/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+
+### Support or Contact
+
+Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
