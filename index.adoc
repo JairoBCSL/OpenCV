@@ -1,5 +1,4 @@
 # Programas de PDI
-= Programas de PDI
 
 # 2 Manipulação de pixels de uma imagem
 
