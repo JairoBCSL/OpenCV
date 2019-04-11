@@ -248,3 +248,10 @@ int main(int argc, char** argv){
   return 0;
 }
 ----
+
+Para compilar e executar o programa usamos os comandos abaixo substituindo imagem.png pelo nome da imagem em que serão procurados as bolhas e os furos.
+
+```markdown
+make labeling
+./labeling imagem.png
+```
