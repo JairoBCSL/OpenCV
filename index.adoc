@@ -65,5 +65,5 @@ image::/imagens/biel.png[]
 
 e executando o programa, obtemos a imagem *_Negativo_* abaixo
 
-image::/imagens/negativo.png
+image::/imagens/negativo.png[]
 
