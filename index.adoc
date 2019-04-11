@@ -255,3 +255,7 @@ Para compilar e executar o programa usamos os comandos abaixo substituindo image
 make labeling
 ./labeling imagem.png
 ```
+
+Executando o programa com link:/imagens/bolhas.png[Bolhas] temos o seguinte resultado:
+
+image::/imagens/bolhas.png[] image::/imagens/furos.png[]
