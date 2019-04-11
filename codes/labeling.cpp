@@ -41,7 +41,7 @@ int main(int argc, char** argv){
     }
   }
   fundo=254;
-  printf("Tem %d objetos\n", nobjects);
+  printf("Tem %d bolhas\n", nobjects);
 
   // eliminando as bolhas da borda de cima
   p.y=0;
