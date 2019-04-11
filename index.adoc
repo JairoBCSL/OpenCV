@@ -60,14 +60,13 @@ make regions
 ```
 Usando como imagem de entrada o link:/imagens/biel.png[*_Biel_*]
 
-
-Imagem de entrada do programa
-image::/imagens/biel.png[]
+._Imagem de entrada do programa_
+image::/imagens/biel.png[Biel]
 
 e executando o programa, obtemos a imagem link:/imagens/negativo.png[*_Negativo_*] abaixo
 
-Imagem de saída do programa
-image::/imagens/negativo.png[]
+._Imagem de saída do programa_
+image::/imagens/negativo.png[Negativo]
 
 Para entender o código vamos observa-lo por parte:
 O código possui uma parte onde inicializamos as variáveis a serem usadas, tenta abrir o arquivo de imagem e verifica se foi aberto com sucesso.
@@ -261,22 +260,19 @@ make labeling
 
 Executando o programa com link:/imagens/bolhas.png[Bolhas] temos o seguinte resultado:
 
+._Imagem de entrada do programa_
+image::/imagens/bolhas.png[Bolhas]
 
-Imagem de entrada do programa
-image::/imagens/bolhas.png[]
-
-
-Imagem de saída do programa
-image::/imagens/bolhas labeling.png[]
+._Imagem de saída do programa_
+image::/imagens/bolhas labeling.png[Bolhas Labeling]
 
 E executando o programa com link:/imagens/furos.png[Furos] temos o seguinte resultado:
 
-Imagem de entrada do programa
-image::/imagens/furos.png[]
+._Imagem de entrada do programa_
+image::/imagens/furos.png[Furos]
 
-
-Imagem de saída do programa
-image::/imagens/furos labeling.png[]
+._Imagem de saída do programa_
+image::/imagens/furos labeling.png[Furos Labeling]
 
 O programa se divide em inicialização das variáveis
 
