@@ -33,7 +33,7 @@ int main(int argc, char** argv){
   xmax = atoi(argv[4]);
   ymax = atoi(argv[5]);
   
-  if(xmin < 0 || xmax > image.size().width || ymin < 0 || ymax > image.size().height || xmax < xmin || ymax < ymin){
+  if(xmin<0 || xmax>image.size().width || ymin<0 || ymax>image.size().height || xmax<xmin || ymax<ymin){
     std::cout << "Parâmetros inválidos, escolha pontos dentro da largura da imagem\n";
     return 0;
   }
@@ -96,7 +96,7 @@ E então ele verifica a validade das coordenadas escolhidas
 
 [source,cpp]
 ----
-  if(xmin < 0 || xmax > image.size().width || ymin < 0 || ymax > image.size().height || xmax < xmin || ymax < ymin){
+  if(xmin<0 || xmax>image.size().width || ymin<0 || ymax>image.size().height || xmax<xmin || ymax<ymin){
     std::cout << "Parâmetros inválidos, escolha pontos dentro da largura da imagem\n";
     return 0;
   }
