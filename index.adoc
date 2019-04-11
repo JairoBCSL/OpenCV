@@ -258,4 +258,4 @@ make labeling
 
 Executando o programa com link:/imagens/bolhas.png[Bolhas] temos o seguinte resultado:
 
-image::/imagens/bolhas.png[] image::/imagens/furos.png[]
+image::/imagens/bolhas.png[] image::/imagens/bolhas labeling.png[]
