@@ -33,7 +33,7 @@ int main(int argc, char** argv){
   xmax = atoi(argv[4]);
   ymax = atoi(argv[5]);
   
-  if(xmin<0 || xmax>image.size().width || ymin<0 || ymax>image.size().height || xmax<xmin || ymax<ymin){
+  if(xmin<0||xmax>image.size().width||ymin<0||ymax>image.size().height||xmax<xmin||ymax<ymin){
     std::cout << "Parâmetros inválidos, escolha pontos dentro da largura da imagem\n";
     return 0;
   }
@@ -96,7 +96,7 @@ E então ele verifica a validade das coordenadas escolhidas
 
 [source,cpp]
 ----
-  if(xmin<0 || xmax>image.size().width || ymin<0 || ymax>image.size().height || xmax<xmin || ymax<ymin){
+  if(xmin<0||xmax>image.size().width||ymin<0||ymax>image.size().height||xmax<xmin||ymax<ymin){
     std::cout << "Parâmetros inválidos, escolha pontos dentro da largura da imagem\n";
     return 0;
   }
@@ -123,6 +123,128 @@ E por fim, nesse trecho ele executa a negação para imprimir e salvar a imagem 
 
 ==== 3.2.1 Labeling.cpp
 
-Esse exercício consiste na contagem de bolhas com furos que não estão nas bordas da imagem. O número de bolhas e bolhas com furos é exibido no terminal. O exemplo usou a imagem das link:/imagens/bolhas.png[*_Bolhas_*] para conta-las.
+Esse exercício consiste na contagem de bolhas com furos que não estão nas bordas da imagem. O número de bolhas e bolhas com furos é exibido no terminal. O exemplo usou as imagens link:/imagens/bolhas.png[*_Bolhas_*] que contém 32 bolhas e 7 com furos e link:/imagens/furos.png[*_Furos_*] para conta-las.
 
 O código fonte do programa pode ser visto abaixo: link:/codes/labeling.cpp[labeling.cpp]
+
+[source,cpp]
+----
+//make labeling
+//./labeling bolhas.png
+#include <iostream>
+#include <opencv2/opencv.hpp>
+using namespace cv;
+
+//saturação => direção da luz;
+
+int main(int argc, char** argv){
+  Mat image, save;
+  int width, height;
+  int nobjects, fundo, furo;
+
+  CvPoint p;
+  image = imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
+  save = imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data||!save.data){
+    std::cout << "imagem nao carregou corretamente\n";
+    return(-1);
+  }
+  width=image.size().width;
+  height=image.size().height;
+
+  p.x=0;
+  p.y=0;
+
+  // busca objetos presentes
+  nobjects=0;
+  furo=0;
+  //std::cout << (int)image.at<uchar>(0,width-1) << std::endl;
+  for(int i=0; i<height; i++){
+    for(int j=0; j<width; j++){
+      if(image.at<uchar>(i,j) == 255){//############
+		// achou um objeto
+		//std::cout << image.at<int>(i,j) << std::endl;
+		nobjects++;
+		p.x=j;
+		p.y=i;
+		floodFill(image,p,(nobjects%254));
+      }
+    }
+  }
+  fundo=254;
+  printf("Tem %d bolhas\n", nobjects);
+
+  // eliminando as bolhas da borda de cima
+  p.y=0;
+  for(int i=0; i<width; i++){
+    if(image.at<uchar>(p.y,i) != 0){ //###############
+      nobjects--;
+      p.x=i;
+      floodFill(image,p,0);
+    }
+  }
+  //printf("Agora tem %d objetos\n", nobjects);
+  // eliminando as bolhas da borda de baixo
+  p.y=height-1;
+  for(int i=0; i<width; i++){
+    if(image.at<uchar>(p.y,i) != 0){//#############
+      nobjects--;
+      p.x=i;
+      floodFill(image,p,0);
+    }
+  }
+  //printf("Agora tem %d objetos\n", nobjects);
+  // eliminando as bolhas da borda da esquerda
+  p.x=0;
+  for(int i=0; i<height; i++){
+    if(image.at<uchar>(i,p.x) != 0){//##########
+      nobjects--;
+      p.y=i;
+      floodFill(image,p,0);
+    }
+  }
+  //printf("Agora tem %d objetos\n", nobjects);
+  // eliminando as bolhas da borda da direita
+  p.x=width-1;
+  for(int i=0; i<height; i++){
+    if(image.at<uchar>(i,p.x) != 0){//#############
+      nobjects--;
+      p.y=i;
+      floodFill(image,p,0);
+    }
+  }
+  //printf("Agora tem %d objetos\n", nobjects);
+
+  //achando buracos
+  p.x=0;p.y=0;
+  floodFill(image,p,fundo);
+  for(int i=0; i<height; i++){
+    for(int j=0; j<width; j++){
+      if(image.at<uchar>(i,j) == 0){//############
+	if(image.at<uchar>(i-1,j) !=fundo){//##########
+	  furo++;
+	  p.x=j;
+	  p.y=i;
+	  floodFill(image,p,fundo);
+	  p.x--;
+	  floodFill(image,p,fundo);
+	}
+	else{
+	  p.x=j;
+	  p.y=i;
+	  floodFill(image,p,fundo);
+	}
+      }
+    }
+  }
+  printf("Tem %d bolhas com buracos\n", furo);
+
+  // exibindo
+  imshow("Original", save);
+  imshow("Processada", image);
+  imwrite("labeling.png", image);
+  
+  waitKey();
+  return 0;
+}
+----
