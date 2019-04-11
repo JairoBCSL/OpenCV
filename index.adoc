@@ -8,7 +8,7 @@
 
 Esse exercício consiste em tornar negativa uma região definida como parâmetro de uma imagem de entrada também fornecida como parâmetro. O exemplo usou a image do link:/imagens/biel.png[*_Biel_*] e os vértices opostos (100,100) e (200,200) que formarão a região retangular a ser negativada.
 
-O código fonte do programa pode ser visto abaixo: link:/source_codes/regions.cpp[regions.cpp]
+O código fonte do programa pode ser visto abaixo: link:/codes/regions.cpp[regions.cpp]
 
 [source,cpp]
 ----
