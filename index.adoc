@@ -115,3 +115,14 @@ E por fim, nesse trecho ele executa a negação para imprimir e salvar a imagem 
   imshow("Processada", image);
   imwrite("negativo.png", image);
 ----
+
+
+== 3. Preenchimento de Regiões
+
+=== 3.2. Exercício
+
+==== 3.2.1 Labeling.cpp
+
+Esse exercício consiste na contagem de bolhas com furos que não estão nas bordas da imagem. O número de bolhas e bolhas com furos é exibido no terminal. O exemplo usou a imagem das link:/imagens/bolhas.png[*_Bolhas_*] para conta-las.
+
+O código fonte do programa pode ser visto abaixo: link:/codes/labeling.cpp[labeling.cpp]
