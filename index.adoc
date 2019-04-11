@@ -428,7 +428,7 @@ O código fonte do programa pode ser visto abaixo: link:/codes/equalize.cpp[equa
 [source,cpp]
 ----
 //make equalize
-//./equalize imagem.extensÃ£o
+//./equalize cachorro.jpg
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -534,7 +534,7 @@ int main(int argc, char** argv){
     histImgBs.copyTo(sv(Rect(0, 2*histh, nbins, histh)));
     imshow("image", image);
     imshow("sv", sv);
-
+    imwrite("cachorro_equalize", sv);
     if(waitKey(-1));
 
   return 0;
