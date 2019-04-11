@@ -270,7 +270,7 @@ image:/imagens/furos.png[Furos]
 
 e como resultado obtemos link:imagens/furos_labeling.png[Furos Labeling]
 
-image:/imagens/furos\-labeling.png[Furos Labeling]
+image:/imagens/furos_labeling.png[Furos Labeling]
 
 O programa se divide em inicialização das variáveis
 
