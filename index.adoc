@@ -6,6 +6,9 @@
 
 === 2.2.1. Regions.cpp
 
+* Esse exercício consiste em tornar negativa uma região definida como parâmetro de uma imagem de entrada também fornecida como parâmetro.
+
+
 
 [source,cpp]
 ----
