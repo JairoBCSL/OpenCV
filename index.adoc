@@ -260,17 +260,17 @@ Executando o programa com link:/imagens/bolhas.png[Bolhas] temos o seguinte resu
 
 image:/imagens/bolhas.png[Bolhas]
 
-e o resultado obtido é link:imagens/bolhas labeling.png[Bolhas Labeling]
+e o resultado obtido é link:imagens/bolhas_labeling.png[Bolhas Labeling]
 
-image:/imagens/bolhas labeling.png[Bolhas Labeling]
+image:/imagens/bolhas_labeling.png[Bolhas Labeling]
 
 E executando o programa com link:/imagens/furos.png[Furos] temos o seguinte resultado:
 
 image:/imagens/furos.png[Furos]
 
-e como resultado obtemos link:imagens/furos labeling.png[Furos Labeling]
+e como resultado obtemos link:imagens/furos_labeling.png[Furos Labeling]
 
-image:/imagens/furos labeling.png[Furos Labeling]
+image:/imagens/furos\-labeling.png[Furos Labeling]
 
 O programa se divide em inicialização das variáveis
 
