@@ -1,5 +1,5 @@
 //make equalize
-//./equalize imagem.extensÃ£o
+//./equalize imagem.extensão
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -64,34 +64,22 @@ int main(int argc, char** argv){
     histImgR.setTo(Scalar(0));
     histImgG.setTo(Scalar(0));
     histImgB.setTo(Scalar(0));
-    histImgRs.setTo(Scalar(0));//#
+    histImgRs.setTo(Scalar(0));
     histImgGs.setTo(Scalar(0));
     histImgBs.setTo(Scalar(0));
     
     for(int i=0; i<nbins; i++){
-      line(histImgR,
-           Point(i, histh),
-           Point(i, histh-cvRound(histR.at<float>(i))),
+      line(histImgR, Point(i, histh), Point(i, histh-cvRound(histR.at<float>(i))),
            Scalar(0, 0, 255), 1, 8, 0);
-      line(histImgG,
-           Point(i, histh),
-           Point(i, histh-cvRound(histG.at<float>(i))),
+      line(histImgG, Point(i, histh), Point(i, histh-cvRound(histG.at<float>(i))),
            Scalar(0, 255, 0), 1, 8, 0);
-      line(histImgB,
-           Point(i, histh),
-           Point(i, histh-cvRound(histB.at<float>(i))),
+      line(histImgB, Point(i, histh), Point(i, histh-cvRound(histB.at<float>(i))),
            Scalar(255, 0, 0), 1, 8, 0);
-      line(histImgRs,
-           Point(i, histh),
-           Point(i, histh-cvRound(histRs.at<float>(i))),
-           Scalar(0, 0, 255), 1, 8, 0);//#
-      line(histImgGs,
-           Point(i, histh),
-           Point(i, histh-cvRound(histGs.at<float>(i))),
+      line(histImgRs, Point(i, histh), Point(i, histh-cvRound(histRs.at<float>(i))),
+           Scalar(0, 0, 255), 1, 8, 0);
+      line(histImgGs, Point(i, histh), Point(i, histh-cvRound(histGs.at<float>(i))),
            Scalar(0, 255, 0), 1, 8, 0);
-      line(histImgBs,
-           Point(i, histh),
-           Point(i, histh-cvRound(histBs.at<float>(i))),
+      line(histImgBs, Point(i, histh), Point(i, histh-cvRound(histBs.at<float>(i))),
            Scalar(255, 0, 0), 1, 8, 0);
     }
 
@@ -105,8 +93,7 @@ int main(int argc, char** argv){
     histImgBs.copyTo(sv(Rect(0, 2*histh, nbins, histh)));
     imshow("image", image);
     imshow("sv", sv);
-    imwrite("cachorro_equalize.png", sv);
-
+    imwrite("imagem.png", sv);
     if(waitKey(-1));
 
   return 0;
