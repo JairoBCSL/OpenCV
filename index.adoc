@@ -680,3 +680,197 @@ E aqui os histogramas são colocados nas imagens original e equalizada.
     histImgGs.copyTo(sv(Rect(0, histh  , nbins, histh)));
     histImgBs.copyTo(sv(Rect(0, 2*histh, nbins, histh)));
 ----
+
+=== 4.2.1. Regions.cpp
+
+Esse exercício vai se propor a equalizar o histograma de uma imagem afim de torna-lo mais destribuído entre os tons de RGB. Os exemplos usados serão link/imagens/cachorro.png e link/imagens/nissan.png e retornarão imagens com o histograma equalizado. Lembrando que a operação de equalização de histograma não retorna obrigatoriamente um resultado melhor que a imagem de entrada, pois algumas imagens precisão de um espaço grande entre os tons ou até tons próximos para que o olho considere mais agradáveis.
+
+O código fonte do programa pode ser visto abaixo: link:/codes/equalize.cpp[equalize.cpp]
+
+[source,cpp]
+----
+//make equalize
+//./equalize imagem.extensão
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image, sv;
+  vector<Mat> planes, svPlanes;
+  Mat histR, histG, histB;
+  Mat histRs, histGs, histBs;
+  int nbins = 64;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;
+
+  int histw = nbins, histh = nbins/2;
+  Mat histImgR(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgG(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgB(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgRs(histh, histw, CV_8UC3, Scalar(0,0,0));//#
+  Mat histImgGs(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgBs(histh, histw, CV_8UC3, Scalar(0,0,0));
+
+    image = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+
+    split (image, planes);
+    image.copyTo(sv);
+    split (sv, svPlanes);
+
+    equalizeHist(svPlanes[0], svPlanes[0]);//#
+    equalizeHist(svPlanes[1], svPlanes[1]);
+    equalizeHist(svPlanes[2], svPlanes[2]);
+
+    calcHist(&planes[0], 1, 0, Mat(), histR, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&planes[1], 1, 0, Mat(), histG, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&planes[2], 1, 0, Mat(), histB, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&svPlanes[0], 1, 0, Mat(), histRs, 1,//#
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&svPlanes[1], 1, 0, Mat(), histGs, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&svPlanes[2], 1, 0, Mat(), histBs, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+
+    normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+    normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+    normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+    normalize(histRs, histRs, 0, histImgRs.rows, NORM_MINMAX, -1, Mat());//#
+    normalize(histGs, histGs, 0, histImgGs.rows, NORM_MINMAX, -1, Mat());
+    normalize(histBs, histBs, 0, histImgBs.rows, NORM_MINMAX, -1, Mat());
+
+    histImgR.setTo(Scalar(0));
+    histImgG.setTo(Scalar(0));
+    histImgB.setTo(Scalar(0));
+    histImgRs.setTo(Scalar(0));//#
+    histImgGs.setTo(Scalar(0));
+    histImgBs.setTo(Scalar(0));
+    
+    for(int i=0; i<nbins; i++){
+      line(histImgR,
+           Point(i, histh),
+           Point(i, histh-cvRound(histR.at<float>(i))),
+           Scalar(0, 0, 255), 1, 8, 0);
+      line(histImgG,
+           Point(i, histh),
+           Point(i, histh-cvRound(histG.at<float>(i))),
+           Scalar(0, 255, 0), 1, 8, 0);
+      line(histImgB,
+           Point(i, histh),
+           Point(i, histh-cvRound(histB.at<float>(i))),
+           Scalar(255, 0, 0), 1, 8, 0);
+      line(histImgRs,
+           Point(i, histh),
+           Point(i, histh-cvRound(histRs.at<float>(i))),
+           Scalar(0, 0, 255), 1, 8, 0);//#
+      line(histImgGs,
+           Point(i, histh),
+           Point(i, histh-cvRound(histGs.at<float>(i))),
+           Scalar(0, 255, 0), 1, 8, 0);
+      line(histImgBs,
+           Point(i, histh),
+           Point(i, histh-cvRound(histBs.at<float>(i))),
+           Scalar(255, 0, 0), 1, 8, 0);
+    }
+
+    merge(svPlanes, sv);
+
+    histImgR.copyTo(image(Rect(0, 0      , nbins, histh)));
+    histImgG.copyTo(image(Rect(0, histh  , nbins, histh)));
+    histImgB.copyTo(image(Rect(0, 2*histh, nbins, histh)));
+    histImgRs.copyTo(sv(Rect(0, 0      , nbins, histh)));
+    histImgGs.copyTo(sv(Rect(0, histh  , nbins, histh)));
+    histImgBs.copyTo(sv(Rect(0, 2*histh, nbins, histh)));
+    imshow("image", image);
+    imshow("sv", sv);
+
+    if(waitKey(-1));
+
+  return 0;
+}
+----
+
+E os comandos a serem usados para compilar e executar o exemplo podem ser vistos abaixo
+
+```markdown
+make equalize
+./equalize imagem.extensão
+```
+Usando como imagem de entrada o link:/imagens/cachorro.jpeg[*_Catiolo_*]
+
+image:/imagens/cachorro.jpeg[Cachorro]
+
+e executando o programa, obtemos uma imagem equalizada mais realista link:/imagens/cachorroeq.png[*_Cariolo Equalizado_*]
+
+image:/imagens/cachorroeq.png[Cachorro Equalizada]
+
+Usando como imagem de entrada o link:/imagens/carro.png[*_Carrão_*]
+
+image:/imagens/carro.jpg[Carro]
+
+e executando o programa, obtemos uma imagem equalizada não tão agradável link:/imagens/carroeq.png[*_Carrão Equalizado_*]
+
+image:/imagens/carroeq.png[Cachorro Equalizada]
+
+Para entender o código vamos separa-lo por parte:
+asdasd
+
+[source,cpp]
+----
+  Mat image;
+  int xmin, ymin, xmax, ymax;
+
+  CvPoint p;
+  image = imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data){
+    std::cout << "imagem nao carregou corretamente\n";
+    return(-1);
+  }
+----
+
+Após isso ele instancia as coordenadas dos vértices que definem o retângulo a ser negativado.
+
+[source,cpp]
+----
+  xmin = atoi(argv[2]);
+  ymin = atoi(argv[3]);
+  xmax = atoi(argv[4]);
+  ymax = atoi(argv[5]);
+----
+
+E então ele verifica a validade das coordenadas escolhidas
+
+[source,cpp]
+----
+  if(xmin<0||xmax>image.size().width||ymin<0||ymax>image.size().height||xmax<xmin||ymax<ymin){
+    std::cout << "Parâmetros inválidos, escolha pontos dentro da largura da imagem\n";
+    return 0;
+  }
+----
+
+E por fim, nesse trecho ele executa a negação para imprimir e salvar a imagem com a área negativada.
+
+[source,cpp]
+----
+  for(int i=xmin; i<xmax; i++){
+    for(int j=ymin; j<ymax; j++){
+      image.at<uchar>(i,j)=(unsigned char)(256-(int)image.at<uchar>(i,j));
+    }
+  }
+  
+  imshow("Processada", image);
+  imwrite("negativo.png", image);
+----
