@@ -556,7 +556,7 @@ e executando o programa, obtemos uma imagem equalizada mais realista link:/image
 
 image:/imagens/cachorroeq.png[Cachorro Equalizada]
 
-Usando como imagem de entrada o link:/imagens/carro.png[*_Carrão_*]
+Usando como imagem de entrada o link:/imagens/carro.jpg[*_Carrão_*]
 
 image:/imagens/carro.jpg[Carro]
 
