@@ -1264,10 +1264,396 @@ int main(int argc, char** argv){
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_5_filtragem_espacial_i">5. Filtragem Espacial I</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_5_2_exercício">5.2. Exercício</h3>
+<div class="sect3">
+<h4 id="_5_2_1_lapsgauss_cpp">5.2.1. lapsgauss.cpp</h4>
+<div class="paragraph">
+<p>Esse exercício consiste na aplicação do filtro de LoG ou laplaciano da gaussiana e comparação com a simples aplicação do laplaciano à um fluxo de câmera. Tomei a liberdade de mudar a máscara de laplaciano para ficar proporcional à máscara LoG em tamanho.</p>
+</div>
+<div class="paragraph">
+<p>O código fonte do programa pode ser visto abaixo: <a href="/OpenCV/codes/laplgauss.cpp">laplgauss.cpp</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">//make laplgauss
+//./laplgauss
+#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+
+using namespace cv;
+using namespace std;
+
+void printmask(Mat &amp;m){
+  for(int i=0; i&lt;m.size().height; i++){
+    for(int j=0; j&lt;m.size().width; j++){
+      cout &lt;&lt; m.at&lt;float&gt;(i,j) &lt;&lt; ",";
+    }
+    cout &lt;&lt; endl;
+  }
+}
+
+void menu(){
+  cout &lt;&lt; "\npressione a tecla para ativar o filtro: \n"
+	"a - calcular modulo\n"
+    "m - media\n"
+    "g - gaussiano\n"
+    "v - vertical\n"
+    "h - horizontal\n"
+    "l - laplaciano\n"
+    "c - laplaciano do gaussiano\n"
+    "esc - sair\n";
+}
+
+int main(int argvc, char** argv){
+  VideoCapture video;
+  float media[] = {1,1,1,
+                   1,1,1,
+                   1,1,1};
+  float gauss[] = {1,2,1,
+                   2,4,2,
+                   1,2,1};
+  float horizontal[]={-1,0,1,
+                      -2,0,2,
+                      -1,0,1};
+  float vertical[]={-1,-2,-1,
+                      0,0,0,
+                      1,2,1};
+  float laplacian[]={-1,-1,-1,-1,-1,
+                     -1,-1,-1,-1,-1,
+                     -1,-1,24,-1,-1,
+                     -1,-1,-1,-1,-1,
+                     -1,-1,-1,-1,-1};
+
+  float nda[]={0,0,0,
+               0,1,0,
+               0,0,0};
+
+  float laplgauss[]={0, 0,-1, 0, 0,
+                     0,-1,-2,-1, 0,
+                    -1,-2,16,-2,-1,
+                     0,-1,-2,-1, 0,
+                     0, 0,-1, 0, 0 };
+
+
+  Mat cap, frame, frame32f, frameFiltered;
+  Mat mask(3,3,CV_32F), mask1;
+  Mat result, result1;
+  double width, height;
+  int absolut;
+  char key;
+
+  video.open(0);
+  if(!video.isOpened())
+    return -1;
+  width=video.get(CV_CAP_PROP_FRAME_WIDTH);
+  height=video.get(CV_CAP_PROP_FRAME_HEIGHT);
+  std::cout &lt;&lt; "largura=" &lt;&lt; width &lt;&lt; "\n";;
+  std::cout &lt;&lt; "altura =" &lt;&lt; height&lt;&lt; "\n";;
+
+  namedWindow("filtroespacial",1);
+
+  mask = Mat(3, 3, CV_32F, media);
+  scaleAdd(mask, 1/9.0, Mat::zeros(3,3,CV_32F), mask1);
+  swap(mask, mask1);
+  absolut=1; // calcs abs of the image
+
+  menu();
+  for(;;){
+    video &gt;&gt; cap;
+    cvtColor(cap, frame, CV_BGR2GRAY);
+    flip(frame, frame, 1);
+    imshow("original", frame);
+    frame.convertTo(frame32f, CV_32F);
+
+    key = (char) waitKey(10);
+    if( key == 27 ) break; // esc pressed!
+    switch(key){
+    case 'a':
+	  menu();
+      absolut=!absolut;
+      break;
+    case 'm':
+	  menu();
+      mask = Mat(3, 3, CV_32F, media);
+      scaleAdd(mask, 1/9.0, Mat::zeros(3,3,CV_32F), mask1);
+      mask = mask1;
+      printmask(mask);
+      break;
+    case 'g':
+	  menu();
+      mask = Mat(3, 3, CV_32F, gauss);
+      scaleAdd(mask, 1/16.0, Mat::zeros(3,3,CV_32F), mask1);
+      mask = mask1;
+      printmask(mask);
+      break;
+    case 'h':
+	  menu();
+      mask = Mat(3, 3, CV_32F, horizontal);
+      printmask(mask);
+      break;
+    case 'v':
+	  menu();
+      mask = Mat(3, 3, CV_32F, vertical);
+      printmask(mask);
+      break;
+    case 'l':
+	  menu();
+      mask = Mat(5, 5, CV_32F, laplacian);
+      scaleAdd(mask, 1/8.0, Mat::zeros(5,5,CV_32F), mask1);
+      mask = mask1;
+      printmask(mask);
+      imwrite("lapla.png", result);
+      break;
+    case 'c':
+	  menu();
+
+      mask = Mat(5, 5, CV_32F, laplgauss);
+      scaleAdd(mask, 1/4.0, Mat::zeros(5,5,CV_32F), mask1);
+      mask = mask1;
+
+      imwrite("log.png", result);
+      printmask(mask);
+      break;
+    case 'n':
+	  menu();
+      mask = Mat(3, 3, CV_32F, nda);
+      printmask(mask);
+      break;
+
+    default:
+      break;
+    }
+    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0);
+    if(absolut){
+      frameFiltered=abs(frameFiltered);
+    }
+    frameFiltered.convertTo(result, CV_8U);
+    imshow("filtroespacial", result);
+
+  }
+  imwrite("normal.png", frame);
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>E os comandos a serem usados para compilar e executar o exemplo podem ser vistos abaixo</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-markdown" data-lang="markdown">make laplgauss
+./laplgauss</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Executando o programa, um frame inalterado é salvo <a href="/OpenCV/imagens/normal.png"><strong><em>Normal</em></strong></a></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="/OpenCV/imagens/normal.png" alt="Normal"></span></p>
+</div>
+<div class="paragraph">
+<p>uma imagem aplicada o filtro laplaciano <a href="/OpenCV/imagens/lapla.png"><strong><em>Laplaciano</em></strong></a></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="/OpenCV/imagens/lapla.png" alt="Laplaciano"></span></p>
+</div>
+<div class="paragraph">
+<p>uma imagem aplicada o filtro LoG <a href="/OpenCV/imagens/log.png"><strong><em>LoG</em></strong></a> abaixo</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="/OpenCV/imagens/log.png" alt="Trocada"></span></p>
+</div>
+<div class="paragraph">
+<p>Para entender o código vamos observa-lo por parte:
+Inicialmente temos duas funções, uma que exibe o máscara sendo usada e outra que funciona como o menu do programa</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void printmask(Mat &amp;m){
+  for(int i=0; i&lt;m.size().height; i++){
+    for(int j=0; j&lt;m.size().width; j++){
+      cout &lt;&lt; m.at&lt;float&gt;(i,j) &lt;&lt; ",";
+    }
+    cout &lt;&lt; endl;
+  }
+}
+
+void menu(){
+  cout &lt;&lt; "\npressione a tecla para ativar o filtro: \n"
+	"a - calcular modulo\n"
+    "m - media\n"
+    "g - gaussiano\n"
+    "v - vertical\n"
+    "h - horizontal\n"
+    "l - laplaciano\n"
+    "c - laplaciano do gaussiano\n"
+    "esc - sair\n";
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Após isso temos a criação das máscaras e das matrizes que guardarão as imagens em 0~255, float e a imagem filtrada, como também as matrizes resultado</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">VideoCapture video;
+  float media[] = {1,1,1,
+                   1,1,1,
+                   1,1,1};
+  float gauss[] = {1,2,1,
+                   2,4,2,
+                   1,2,1};
+  float horizontal[]={-1,0,1,
+                      -2,0,2,
+                      -1,0,1};
+  float vertical[]={-1,-2,-1,
+                      0,0,0,
+                      1,2,1};
+  float laplacian[]={-1,-1,-1,-1,-1,
+                     -1,-1,-1,-1,-1,
+                     -1,-1,24,-1,-1,
+                     -1,-1,-1,-1,-1,
+                     -1,-1,-1,-1,-1};
+
+  float nda[]={0,0,0,
+               0,1,0,
+               0,0,0};
+
+  float laplgauss[]={0, 0,-1, 0, 0,
+                     0,-1,-2,-1, 0,
+                    -1,-2,16,-2,-1,
+                     0,-1,-2,-1, 0,
+                     0, 0,-1, 0, 0 };
+
+
+  Mat cap, frame, frame32f, frameFiltered;
+  Mat mask(3,3,CV_32F), mask1;
+  Mat result, result1;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Após isso, o programa abre a câmera e aplica o filtro de média inicialmente</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">video.open(0);
+  if(!video.isOpened())
+    return -1;
+  width=video.get(CV_CAP_PROP_FRAME_WIDTH);
+  height=video.get(CV_CAP_PROP_FRAME_HEIGHT);
+  std::cout &lt;&lt; "largura=" &lt;&lt; width &lt;&lt; "\n";;
+  std::cout &lt;&lt; "altura =" &lt;&lt; height&lt;&lt; "\n";;
+
+  namedWindow("filtroespacial",1);
+
+  mask = Mat(3, 3, CV_32F, media);
+  scaleAdd(mask, 1/9.0, Mat::zeros(3,3,CV_32F), mask1);
+  swap(mask, mask1);
+  absolut=1; // calcs abs of the image</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nessa parte do programa, a função menu é chamada e o for, dependendo do filtro selecionado, o case aplica o filtro na imagem já adicionando as escalas, se necessário. E ao fim de cada aplicação do filtro, a função menu é chamada novamente.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">menu();
+  for(;;){
+    video &gt;&gt; cap;
+    cvtColor(cap, frame, CV_BGR2GRAY);
+    flip(frame, frame, 1);
+    imshow("original", frame);
+    frame.convertTo(frame32f, CV_32F);
+
+    key = (char) waitKey(10);
+    if( key == 27 ) break; // esc pressed!
+    switch(key){
+    case 'a':
+	  menu();
+      absolut=!absolut;
+      break;
+    case 'm':
+	  menu();
+      mask = Mat(3, 3, CV_32F, media);
+      scaleAdd(mask, 1/9.0, Mat::zeros(3,3,CV_32F), mask1);
+      mask = mask1;
+      printmask(mask);
+      break;
+    case 'g':
+	  menu();
+      mask = Mat(3, 3, CV_32F, gauss);
+      scaleAdd(mask, 1/16.0, Mat::zeros(3,3,CV_32F), mask1);
+      mask = mask1;
+      printmask(mask);
+      break;
+    case 'h':
+	  menu();
+      mask = Mat(3, 3, CV_32F, horizontal);
+      printmask(mask);
+      break;
+    case 'v':
+	  menu();
+      mask = Mat(3, 3, CV_32F, vertical);
+      printmask(mask);
+      break;
+    case 'l':
+	  menu();
+      mask = Mat(5, 5, CV_32F, laplacian);
+      scaleAdd(mask, 1/8.0, Mat::zeros(5,5,CV_32F), mask1);
+      mask = mask1;
+      printmask(mask);
+      imwrite("lapla.png", result);
+      break;
+    case 'c':
+	  menu();
+
+      mask = Mat(5, 5, CV_32F, laplgauss);
+      scaleAdd(mask, 1/4.0, Mat::zeros(5,5,CV_32F), mask1);
+      mask = mask1;
+
+      imwrite("log.png", result);
+      printmask(mask);
+      break;
+    case 'n':
+	  menu();
+      mask = Mat(3, 3, CV_32F, nda);
+      printmask(mask);
+      break;
+
+    default:
+      break;
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Por fim, aplica-se o absoluto, se estiver ativo, e a imagem é salva</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">    filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1,1), 0);
+    if(absolut){
+      frameFiltered=abs(frameFiltered);
+    }
+    frameFiltered.convertTo(result, CV_8U);
+    imshow("filtroespacial", result);
+
+  }
+  imwrite("normal.png", frame);
+  return 0;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-04-25 18:36:19 -0300
+Last updated 2019-04-25 19:11:26 -0300
 </div>
 </div>
 </body>
