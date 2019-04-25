@@ -571,6 +571,119 @@ O código possui uma parte onde inicializamos as variáveis a serem usadas, tent
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_2_2_1_trocaregioes_cpp">2.2.1. Trocaregioes.cpp</h4>
+<div class="paragraph">
+<p>Esse exercício consiste em trocar os quadrantes de uma imagem de entrada fornecida como parâmetro. O exemplo usou a image do <a href="/OpenCV/imagens/biel.png"><strong><em>Biel</em></strong></a> e o centro da imagem para trocar os quatro quadrantes.</p>
+</div>
+<div class="paragraph">
+<p>O código fonte do programa pode ser visto abaixo: <a href="/OpenCV/codes/trocaregioes.cpp">trocaregioes.cpp</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">//	make trocaregioes
+//	./trocaregioes nome_da_imagem
+#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image, save;
+  int largura, altura;
+  CvPoint p;
+  image = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+  save = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data||!save.data){
+    cout &lt;&lt; "Não carregou\n";
+  }
+  largura=image.size().width;
+  altura=image.size().height;
+
+  p.x=0;
+  p.y=0;
+
+  for(int i=0; i&lt;altura; i++){
+    for(int j=0; j&lt;largura; j++){
+      image.at&lt;uchar&gt;(i,j) = save.at&lt;uchar&gt;((i+altura/2)%altura,(j+largura/2)%largura);
+    }
+  }
+
+  imshow("Original", save);
+  imshow("Processada", image);
+  imwrite("trocada.png", image);
+  waitKey();
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>E os comandos a serem usados para compilar e executar o exemplo podem ser vistos abaixo</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-markdown" data-lang="markdown">make trocaregioes
+./trocaregioes biel.png</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usando como imagem de entrada o <a href="/OpenCV/imagens/biel.png"><strong><em>Biel</em></strong></a></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="/OpenCV/imagens/biel.png" alt="Biel"></span></p>
+</div>
+<div class="paragraph">
+<p>e executando o programa, obtemos a imagem <a href="/OpenCV/imagens/trocada.png"><strong><em>Trocada</em></strong></a> abaixo</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="/OpenCV/imagens/trocada.png" alt="Trocada"></span></p>
+</div>
+<div class="paragraph">
+<p>Para entender o código vamos observa-lo por parte:
+O código possui uma parte onde inicializamos as variáveis a serem usadas, tenta abrir o arquivo de imagem e verifica se foi aberto com sucesso.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">  Mat image, save;
+  int largura, altura;
+  CvPoint p;
+  image = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+  save = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data||!save.data){
+    cout &lt;&lt; "Não carregou\n";
+  }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Após isso ele obtém a largura e altura da imagem, e desloga os quadrantes da imagem</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">  largura=image.size().width;
+  altura=image.size().height;
+
+  p.x=0;
+  p.y=0;
+
+  for(int i=0; i&lt;altura; i++){
+    for(int j=0; j&lt;largura; j++){
+      image.at&lt;uchar&gt;(i,j) = save.at&lt;uchar&gt;((i+altura/2)%altura,(j+largura/2)%largura);
+    }
+  }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ao fim ele exibe a imagem original e a trocada, e salva a imagem trocada.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">  imshow("Original", save);
+  imshow("Processada", image);
+  imwrite("trocada.png", image);
+  }</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1154,7 +1267,7 @@ int main(int argc, char** argv){
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-04-25 18:24:07 -0300
+Last updated 2019-04-25 18:36:19 -0300
 </div>
 </div>
 </body>
