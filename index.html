@@ -1261,6 +1261,234 @@ int main(int argc, char** argv){
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_4_2_1_equalize_cpp_2">4.2.1. Equalize.cpp</h4>
+<div class="paragraph">
+<p>Esse programa se propõe a detectar movimentos na câmera a partir de alterações no histograma da imagem.</p>
+</div>
+<div class="paragraph">
+<p>O código fonte do programa pode ser visto abaixo: <a href="/OpenCV/codes/motiondetector.cpp">motiondetector.cpp</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">//make motiondetector
+//./motiondetector
+#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image;
+  int width, height, al = 0;
+  VideoCapture cap;
+  vector&lt;Mat&gt; planes;
+  Mat histR, histG, histB;
+  Mat histRs, histGs, histBs;
+  int nbins = 64;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;
+
+  cap.open(0);
+
+  if(!cap.isOpened()){
+    cout &lt;&lt; "cameras indisponiveis";
+    return -1;
+  }
+
+  for(int i=0; i&lt;30; i++)
+    cap &gt;&gt; image;
+
+  int histw = nbins, histh = nbins/2;
+  Mat histImgR(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgG(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgB(histh, histw, CV_8UC3, Scalar(0,0,0));
+
+  split(image, planes);
+  calcHist(&amp;planes[0], 1, 0, Mat(), histR, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+  calcHist(&amp;planes[1], 1, 0, Mat(), histG, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+  calcHist(&amp;planes[2], 1, 0, Mat(), histB, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+  normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+  normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+  normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+  histR.copyTo(histRs);
+  histG.copyTo(histGs);
+  histB.copyTo(histBs);
+
+  width  = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+  height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+  cout &lt;&lt; "largura = " &lt;&lt; width &lt;&lt; endl;
+  cout &lt;&lt; "altura  = " &lt;&lt; height &lt;&lt; endl;
+
+
+
+  while(1){
+    cap &gt;&gt; image;
+    split (image, planes);
+    calcHist(&amp;planes[0], 1, 0, Mat(), histR, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+    calcHist(&amp;planes[1], 1, 0, Mat(), histG, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+    calcHist(&amp;planes[2], 1, 0, Mat(), histB, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+
+    normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+    normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+    normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+
+    histImgR.setTo(Scalar(0));
+    histImgG.setTo(Scalar(0));
+    histImgB.setTo(Scalar(0));
+
+    for(int i=0; i&lt;nbins; i++){
+      line(histImgR,
+           Point(i, histh),
+           Point(i, histh-cvRound(histR.at&lt;float&gt;(i))),
+           Scalar(0, 0, 255), 1, 8, 0);
+      line(histImgG,
+           Point(i, histh),
+           Point(i, histh-cvRound(histG.at&lt;float&gt;(i))),
+           Scalar(0, 255, 0), 1, 8, 0);
+      line(histImgB,
+           Point(i, histh),
+           Point(i, histh-cvRound(histB.at&lt;float&gt;(i))),
+           Scalar(255, 0, 0), 1, 8, 0);
+    }
+    histImgR.copyTo(image(Rect(0, 0       ,nbins, histh)));
+    histImgG.copyTo(image(Rect(0, histh   ,nbins, histh)));
+    histImgB.copyTo(image(Rect(0, 2*histh ,nbins, histh)));
+
+    if(compareHist(histR, histRs, CV_COMP_CORREL) &lt; 0.98 ||
+       compareHist(histG, histGs, CV_COMP_CORREL) &lt; 0.98 ||
+       compareHist(histB, histBs, CV_COMP_CORREL) &lt; 0.98){
+      cout &lt;&lt; "Bang! " &lt;&lt; ++al &lt;&lt; endl;
+      histR.copyTo(histRs);
+      histG.copyTo(histGs);
+      histB.copyTo(histBs);
+
+
+    }
+
+    imshow("image", image);
+    waitKey(42);
+  }
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Para compilar e executar o programa usamos os comandos abaixo substituindo imagem.png pelo nome da imagem que terá o histograma equalizado</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-markdown" data-lang="markdown">make motiondetector
+./motiondetector</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>O programa avisa a detecção do movimento a partir do 'Bang' no terminal.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-markdown" data-lang="markdown">largura = 848
+altura  = 480
+Bang! 1
+Bang! 2
+Bang! 3
+Bang! 4</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>O programa começa com as declarações e inicializações necessárias tais como a criação dos histogramas em cada canal RGB no frame atual e no anterior, e o vetor de matrizes correspondente a cada canal.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">  Mat image;
+  int width, height, al = 0;
+  VideoCapture cap;
+  vector&lt;Mat&gt; planes;
+  Mat histR, histG, histB;
+  Mat histRs, histGs, histBs;
+  int nbins = 64;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>a partir daí, o programa cria as matrizes de imagem do histograma a serem calculados do primeiro frame, divide a imagem e 'planes' que são as matrizes dos canais RGB, calcula os histogramas, os normaliza e salva o primeiro histograma.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">int histw = nbins, histh = nbins/2;
+  Mat histImgR(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgG(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgB(histh, histw, CV_8UC3, Scalar(0,0,0));
+
+  split(image, planes);
+  calcHist(&amp;planes[0], 1, 0, Mat(), histR, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+  calcHist(&amp;planes[1], 1, 0, Mat(), histG, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+  calcHist(&amp;planes[2], 1, 0, Mat(), histB, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+  normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+  normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+  normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+  histR.copyTo(histRs);
+  histG.copyTo(histGs);
+  histB.copyTo(histBs);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Depois ele entra num loop while(1) que captura um novo frame e calcula o histograma do novo frame, normaliza-o e cria a imagem dele.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">cap &gt;&gt; image;
+    split (image, planes);
+    calcHist(&amp;planes[0], 1, 0, Mat(), histR, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+    calcHist(&amp;planes[1], 1, 0, Mat(), histG, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+    calcHist(&amp;planes[2], 1, 0, Mat(), histB, 1, &amp;nbins, &amp;histrange, uniform, acummulate);
+
+    normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+    normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+    normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+
+    histImgR.setTo(Scalar(0));
+    histImgG.setTo(Scalar(0));
+    histImgB.setTo(Scalar(0));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Depois ele 'desenha' o histograma do frame atual e copia para a imagem.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">    for(int i=0; i&lt;nbins; i++){
+      line(histImgR, Point(i, histh), Point(i, histh-cvRound(histR.at&lt;float&gt;(i))), Scalar(0, 0, 255), 1, 8, 0);
+      line(histImgG, Point(i, histh), Point(i, histh-cvRound(histG.at&lt;float&gt;(i))), Scalar(0, 255, 0), 1, 8, 0);
+      line(histImgB, Point(i, histh), Point(i, histh-cvRound(histB.at&lt;float&gt;(i))), Scalar(255, 0, 0), 1, 8, 0);
+    }
+    histImgR.copyTo(image(Rect(0, 0       ,nbins, histh)));
+    histImgG.copyTo(image(Rect(0, histh   ,nbins, histh)));
+    histImgB.copyTo(image(Rect(0, 2*histh ,nbins, histh)));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Por fim ele compara o novo histograma com o antigo e se a similaridade da comparação (correlação) for menor que 98% em algum canal, o movimento é avisado e o histograma atual passa a ser o salvo para a próxima comparação.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">    if(compareHist(histR, histRs, CV_COMP_CORREL) &lt; 0.98 ||
+       compareHist(histG, histGs, CV_COMP_CORREL) &lt; 0.98 ||
+       compareHist(histB, histBs, CV_COMP_CORREL) &lt; 0.98){
+      cout &lt;&lt; "Bang! " &lt;&lt; ++al &lt;&lt; endl;
+      histR.copyTo(histRs);
+      histG.copyTo(histGs);
+      histB.copyTo(histBs);</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1653,7 +1881,7 @@ void menu(){
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-04-25 19:11:26 -0300
+Last updated 2019-04-25 19:29:28 -0300
 </div>
 </div>
 </body>
