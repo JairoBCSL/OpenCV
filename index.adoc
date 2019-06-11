@@ -1337,3 +1337,501 @@ Por fim, aplica-se o absoluto, se estiver ativo, e a imagem é salva.
 ----
 
 Comparando as imagens obtidas com os filtros laplaciano e LoG podemos notar uma melhor percepção das bordas e menos ruído na imagem filtrada com o LoG quando comparada com a imagem filtrada com o filtro laplaciano.
+
+== 7. Filtragem no domínio da frequência
+
+=== 7.1. Exercício
+
+==== 7.1.1. HMorfico.cpp
+
+Esse exercício pretende explorar a filtragem de imagem no domínio da frequência usando um tipo de filtro chamado homomórfico para ajudar a reduzir algum problema de iluminação. Para tal experimento será usada a imagem link:/OpenCV/imagens/nissan.jpg[*_Nissan_*]
+
+O código fonte do programa pode ser visto abaixo: link:/OpenCV/codes/hmorfico.cpp[hmorfico.cpp]
+
+[source,cpp]
+----
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#include <conio.h>
+
+using namespace cv;
+using namespace std;
+
+double gi = 0.0, gs = 1, c = 1, d0 = 2;
+char key;
+Mat imagem, filtro;
+vector<Mat> planos;
+void troca(Mat& imagem);
+void menu();
+
+int main(int argc, char** argv) {
+	Mat original, imagemRe, imagemIm, imagemComp;
+	Mat filtroComp;
+	int largura, altura;
+
+
+
+	original = imread("nissan.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	largura = getOptimalDFTSize(original.cols);
+	altura = getOptimalDFTSize(original.rows);
+	copyMakeBorder(original, imagem, 0, largura - original.cols, 0, altura - original.rows, BORDER_CONSTANT, Scalar(0, 0, 0));
+
+	imagemIm = Mat_<float>::zeros(imagem.size());
+	imagemComp = Mat(imagem.size(), CV_32FC2, Scalar(0));
+	filtroComp = imagemComp.clone();
+	filtro = Mat(altura, largura, CV_32F);
+
+	for (;;) {
+		for (int i = 0; i < largura; i++) {
+			for (int j = 0; j < altura; j++) {
+				filtro.at<float>(Point(i, j)) = (gs - gi) * (1 - exp(-c * (((i - largura / 2) * (i - largura / 2) + (j - altura / 2) * (j - altura / 2)) / (d0 * d0)))) + gi;
+			}
+		}
+
+		Mat comps[] = { filtro, filtro };
+		merge(comps, 2, filtroComp);
+
+		planos.clear();
+		imagemRe = Mat_<float>(imagem);
+		planos.push_back(imagemRe);
+		planos.push_back(imagemIm);
+		merge(planos, imagemComp);
+		dft(imagemComp, imagemComp);
+		troca(imagemComp);
+		mulSpectrums(imagemComp, filtroComp, imagemComp, 0);
+		planos.clear();
+		troca(imagemComp);
+		idft(imagemComp, imagemComp);
+		planos.clear();
+		split(imagemComp, planos);
+		normalize(planos[0], planos[0], 0, 1, CV_MINMAX);
+
+		//imshow("Ori", original);
+		//waitKey();
+		//imshow("Ima", planos[0]);
+		//waitKey();
+		//imshow("Fil", filtro);
+		imshow("Original", imagem);
+		imshow("Imagem", planos[0]);
+		imshow("Filtro", filtro);
+		menu();
+	}
+
+	return 0;
+}
+
+void troca(Mat& imagem) {
+	Mat tmp, A, B, C, D;
+
+	imagem = imagem(Rect(0, 0, imagem.cols & -2, imagem.rows & -2));
+	int cx = imagem.cols / 2, cy = imagem.rows / 2;
+	A = imagem(Rect(0, 0, cx, cy));
+	B = imagem(Rect(cx, 0, cx, cy));
+	C = imagem(Rect(0, cy, cx, cy));
+	D = imagem(Rect(cx, cy, cx, cy));
+
+	A.copyTo(tmp);  D.copyTo(A);  tmp.copyTo(D);
+	C.copyTo(tmp);  B.copyTo(C);  tmp.copyTo(B);
+
+}
+
+void menu() {
+	key = waitKey();
+	switch (key) {
+	case 'q':
+		gi += 0.1;
+		cout << "Gi: " << gi << endl;
+		break;
+	case 'a':
+		gi -= 0.1;
+		cout << "Gi: " << gi << endl;
+		break;
+	case 'w':
+		gs += 0.1;
+		cout << "Gs: " << gs << endl;
+		break;
+	case 's':
+		gs -= 0.1;
+		cout << "Gs: " << gs << endl;
+		break;
+	case 'e':
+		c += 0.1;
+		cout << "C:  " << c << endl;
+		break;
+	case 'd':
+		c -= 0.1;
+		cout << "C:  " << c << endl;
+		break;
+	case 'r':
+		d0 += 0.1;
+		cout << "D0: " << d0 << endl;
+		break;
+	case 'f':
+		d0 -= 0.1;
+		cout << "D0: " << d0 << endl;
+		break;
+	case 't':
+		imwrite("originalHmorfico.png", imagem);
+		imwrite("hmorfico.png", planos[0]*255);
+		imwrite("filtroHmorfico.png", filtro*255);
+		break;
+	default:
+		break;
+
+	}
+}
+----
+
+Para a compilação e execução foi usado o Visual Studio Comunity e os parâmetros de controle do filtro podem ser modificados usando o teclado durante a execução do programa
+
+Usando como imagem de entrada o link:/OpenCV/imagens/nissan.jpg[*_Nissan_*]
+
+image:/OpenCV/imagens/nissan.jpg[Nissan]
+
+e executando o programa, obtemos a imagem link:/OpenCV/imagens/hmorfico.png[*_Homomórfico_*] abaixo
+
+image:/OpenCV/imagens/hmorfico.png[Homomórfico]
+
+usando o filtro link:/OpenCV/imagens/filtroHmorfico.png[*_FIltroHmorfico_*] abaixo
+
+image:/OpenCV/imagens/filtroHmorfico.png[FiltroHmorfico]
+
+Para entender o código vamos observa-lo por parte:
+O código possui uma parte onde inicializamos as variáveis a serem usadas, tentamos abrir a imagem e obtemos as dimensões dela, como também fazemos a borda para otimizar a fft.
+
+[source,cpp]
+----
+double gi = 0.0, gs = 1, c = 1, d0 = 2;
+char key;
+Mat imagem, filtro;
+vector<Mat> planos;
+void troca(Mat& imagem);
+void menu();
+
+int main(int argc, char** argv) {
+   Mat original, imagemRe, imagemIm, imagemComp;
+   Mat filtroComp;
+   int largura, altura;
+   original = imread("nissan.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+   largura = getOptimalDFTSize(original.cols);
+   altura = getOptimalDFTSize(original.rows);
+   copyMakeBorder(original, imagem, 0, largura - original.cols, 0, altura - original.rows, BORDER_CONSTANT, Scalar(0, 0, 0));
+   imagemIm = Mat_<float>::zeros(imagem.size());
+   imagemComp = Mat(imagem.size(), CV_32FC2, Scalar(0));
+   filtroComp = imagemComp.clone();
+   filtro = Mat(altura, largura, CV_32F);
+----
+
+Após isso, o loop começa e o filtro é criado. É necessário criar imagem complexas para a fft, onde unimos as componentes da imagem (real e imaginária) e aplicamos a multiplicação espectral, e em seguida a transformada inversa,a separação e a normalização da imagem.
+
+[source,cpp]
+----
+for (;;) {
+   for (int i = 0; i < largura; i++) {
+      for (int j = 0; j < altura; j++) {
+         filtro.at<float>(Point(i, j)) = (gs - gi) * (1 - exp(-c * (((i - largura / 2) * (i - largura / 2) + (j - altura / 2) * (j - altura / 2)) / (d0 * d0)))) + gi;
+      }
+   }
+
+Mat comps[] = { filtro, filtro };
+merge(comps, 2, filtroComp);
+
+planos.clear();
+imagemRe = Mat_<float>(imagem);
+planos.push_back(imagemRe);
+planos.push_back(imagemIm);
+merge(planos, imagemComp);
+dft(imagemComp, imagemComp);
+troca(imagemComp);
+mulSpectrums(imagemComp, filtroComp, imagemComp, 0);
+planos.clear();
+troca(imagemComp);
+idft(imagemComp, imagemComp);
+planos.clear();
+split(imagemComp, planos);
+normalize(planos[0], planos[0], 0, 1, CV_MINMAX);
+----
+
+Uma função foi criada para trocar os quadrantes da imagem, para facilitar a visualização e aplicação do filtro.
+
+[source,cpp]
+----
+void troca(Mat& imagem) {
+   Mat tmp, A, B, C, D;
+
+   imagem = imagem(Rect(0, 0, imagem.cols & -2, imagem.rows & -2));
+   int cx = imagem.cols / 2, cy = imagem.rows / 2;
+   A = imagem(Rect(0, 0, cx, cy));
+   B = imagem(Rect(cx, 0, cx, cy));
+   C = imagem(Rect(0, cy, cx, cy));
+   D = imagem(Rect(cx, cy, cx, cy));
+
+   A.copyTo(tmp);  D.copyTo(A);  tmp.copyTo(D);
+   C.copyTo(tmp);  B.copyTo(C);  tmp.copyTo(B);
+
+}
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+== 8. Detecção de bordas com Canny
+
+=== 8.1. Exercício
+
+==== 8.1.1. Cannypoints.cpp
+
+Esse exercício pretende explorar a a detecção de bordas usando o algoritmo do canny e usa-lo em uma aplicação de arte chamada pontilhismo. Para o experimento usaremos a imagem link:/OpenCV/imagens/nissan.jpg[*_Nissan_*]
+
+O código fonte do programa pode ser visto abaixo: link:/OpenCV/codes/cannypoints.cpp[cannypoints.cpp]
+
+[source,cpp]
+----
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <fstream>
+#include <iomanip>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+using namespace cv;
+
+int step_slider = 3, step_slider_max = 10;
+int jitter_slider = 3, jitter_slider_max = 20;
+int raio_slider = 3, raio_slider_max = 5;
+int raio_edge = 2, raio_edge_max = 5;
+int lowTH_slider = 200, lowTH_slider_max = 200;
+int highTH_slider = 600, highTH_slider_max = 600;
+char step_Track[10], jitter_Track[10], raio_Track[10];
+char raioEdge_Track[10], lowTH_Track[10], highTH_Track[10];
+
+Mat image, points, border, borderpoints, fim;
+
+vector<int> yrange, xrange;
+
+int width, height, gray;
+int x, y;
+
+void on_trackbar_pontos(int, void*) {
+	Canny(image, border, lowTH_slider, highTH_slider);
+	if (step_slider < 2) step_slider = 1;
+	if (jitter_slider < 2) jitter_slider = 1;
+	if (raio_slider < 2) raio_slider = 1;
+	xrange.resize(height / step_slider);
+	yrange.resize(width / step_slider);
+
+	iota(xrange.begin(), xrange.end(), 0);
+	iota(yrange.begin(), yrange.end(), 0);
+
+	for (uint i = 0; i < xrange.size(); i++) {
+		xrange[i] = xrange[i] * step_slider + step_slider / 2;
+	}
+
+	for (uint i = 0; i < yrange.size(); i++) {
+		yrange[i] = yrange[i] * step_slider + step_slider / 2;
+	}
+
+	points = Mat(height, width, CV_8U, Scalar(255));
+
+	random_shuffle(xrange.begin(), xrange.end());
+	for (int i = 0; i < xrange.size(); i++) {
+		random_shuffle(yrange.begin(), yrange.end());
+		for (int j = 0; j < yrange.size(); j++) {
+			x = xrange[i] + rand() % (2 * jitter_slider) - jitter_slider + 1;
+			y = yrange[j] + rand() % (2 * jitter_slider) - jitter_slider + 1;
+			if (x >= height) x = height - 1;
+			if (y >= width) y = width - 1;
+			if (x < 0) x = 0;
+			if (y < 0) y = 0;
+			gray = image.at<uchar>(x, y);
+			circle(points, cv::Point(y, x), raio_slider, CV_RGB(gray, gray, gray), -1, CV_AA);
+		}
+	}
+
+	borderpoints = Mat(height, width, CV_8U, Scalar(0));
+
+	for (int x = 0; x < height; x++) {
+		for (int y = 0; y < width; y++) {
+			if (border.at<uchar>(x, y) == 255) {
+				//if (25 > (rand() % 100)) {
+					gray = image.at<uchar>(x, y);
+					circle(borderpoints, cv::Point(y, x), raio_edge, CV_RGB(gray, gray, gray), -1, CV_AA);
+				//}
+			}
+		}
+	}
+	imshow("Teste", borderpoints|points);
+}
+
+int main(int argc, char** argv) {
+
+
+	image = imread("nissan.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+
+	srand(time(0));
+
+	if (!image.data) {
+		cout << "nao abriu nissan.jpg" << endl;
+		exit(0);
+	}
+
+	width  = image.size().width;
+	height = image.size().height;
+
+	sprintf_s(lowTH_Track, "LowTH", lowTH_slider);
+	sprintf_s(highTH_Track, "highTH", highTH_slider);
+	sprintf_s(step_Track, "stepTH", step_slider);
+	sprintf_s(jitter_Track, "jitterTH", jitter_slider);
+	sprintf_s(raio_Track, "raioTH", raio_slider);
+	sprintf_s(raio_Track, "raioTH", raio_edge);
+
+	createTrackbar(lowTH_Track, "Canny", &lowTH_slider, lowTH_slider_max,
+		on_trackbar_pontos);
+	createTrackbar(highTH_Track, "Canny", &highTH_slider, highTH_slider_max,
+		on_trackbar_pontos);
+	createTrackbar(step_Track, "Canny", &step_slider, step_slider_max,
+		on_trackbar_pontos);
+	createTrackbar(jitter_Track, "Canny", &jitter_slider, jitter_slider_max,
+		on_trackbar_pontos);
+	createTrackbar(raio_Track, "Canny", &raio_slider, raio_slider_max,
+		on_trackbar_pontos);
+	createTrackbar(raioEdge_Track, "Canny", &raio_edge, raio_edge_max,
+		on_trackbar_pontos);
+
+	on_trackbar_pontos(lowTH_slider, 0);
+	on_trackbar_pontos(highTH_slider, 0);
+	on_trackbar_pontos(step_slider, 0);
+	on_trackbar_pontos(jitter_slider, 0);
+	on_trackbar_pontos(raio_slider, 0);
+	on_trackbar_pontos(raio_edge, 0);
+
+	namedWindow("Canny", 1);
+
+	createTrackbar(lowTH_Track, "Canny", &lowTH_slider, lowTH_slider_max, on_trackbar_pontos);
+	createTrackbar(highTH_Track, "Canny", &highTH_slider, highTH_slider_max, on_trackbar_pontos);
+	createTrackbar(step_Track, "Canny", &step_slider, step_slider_max, on_trackbar_pontos);
+	createTrackbar(jitter_Track, "Canny", &jitter_slider, jitter_slider_max, on_trackbar_pontos);
+	createTrackbar(raio_Track, "Canny", &raio_slider, raio_slider_max, on_trackbar_pontos);
+	createTrackbar(raioEdge_Track, "Canny", &raio_edge, raio_edge_max, on_trackbar_pontos);
+
+	
+
+	waitKey(0);
+	return 0;
+}----
+
+Para a compilação e execução foi usado o Visual Studio Comunity e os parâmetros de controle do filtro podem ser modificados usando o teclado durante a execução do programa
+
+Usando como imagem de entrada o link:/OpenCV/imagens/nissan.jpg[*_Nissan_*]
+
+image:/OpenCV/imagens/nissan.jpg[Nissan]
+
+e executando o programa, obtemos a imagem link:/OpenCV/imagens/canny.png[*_Canny_*] do resultado do algoritmo canny
+
+image:/OpenCV/imagens/canny.png[Canny]
+
+a imagem link:/OpenCV/imagens/points.png[*_Points_*] resultado do pontilhismo
+
+image:/OpenCV/imagens/hmorfico.png[Homomórfico]
+
+e o resultado do progrma, que foi a 'soma' das duas imagens link:/OpenCV/imagens/cannypoints.png[*_CannyPoints_*] abaixo
+
+image:/OpenCV/imagens/cannypoints.png[CannyPoints]
+
+Para entender o código vamos observa-lo por parte:
+O código inicia com as declarações dos elementos usados no programa
+
+[source,cpp]
+----
+int step_slider = 3, step_slider_max = 10;
+int jitter_slider = 3, jitter_slider_max = 20;
+int raio_slider = 3, raio_slider_max = 5;
+int raio_edge = 2, raio_edge_max = 5;
+int lowTH_slider = 200, lowTH_slider_max = 200;
+int highTH_slider = 600, highTH_slider_max = 600;
+char step_Track[10], jitter_Track[10], raio_Track[10];
+char raioEdge_Track[10], lowTH_Track[10], highTH_Track[10];
+
+Mat image, points, border, borderpoints, fim;
+
+vector<int> yrange, xrange;
+
+int width, height, gray;
+int x, y;
+----
+
+Após isso, definimos a função onde as operações serão executadas onde selecionamos pontos espaçados de 'step_slider' unidades e então emabaralhamos esses pontos. Depois, usando a variável 'jitter_slider', selecionamos pontos aleatórios ao redor do ponto selecionado na etapa anterior e desenhamos uma círculo de raio 'raio_slider' com a cor do pixel do centro desse círculo, e assim está pronta a imagem do pontilhismo.
+
+[source,cpp]
+----
+Canny(image, border, lowTH_slider, highTH_slider);
+if (step_slider < 2) step_slider = 1;
+if (jitter_slider < 2) jitter_slider = 1;
+if (raio_slider < 2) raio_slider = 1;
+xrange.resize(height / step_slider);
+yrange.resize(width / step_slider);
+
+iota(xrange.begin(), xrange.end(), 0);
+iota(yrange.begin(), yrange.end(), 0);
+
+for (uint i = 0; i < xrange.size(); i++) {
+	xrange[i] = xrange[i] * step_slider + step_slider / 2;
+}
+
+for (uint i = 0; i < yrange.size(); i++) {
+	yrange[i] = yrange[i] * step_slider + step_slider / 2;
+}
+
+points = Mat(height, width, CV_8U, Scalar(255));
+
+random_shuffle(xrange.begin(), xrange.end());
+for (int i = 0; i < xrange.size(); i++) {
+	random_shuffle(yrange.begin(), yrange.end());
+	for (int j = 0; j < yrange.size(); j++) {
+		x = xrange[i] + rand() % (2 * jitter_slider) - jitter_slider + 1;
+		y = yrange[j] + rand() % (2 * jitter_slider) - jitter_slider + 1;
+		if (x >= height) x = height - 1;
+		if (y >= width) y = width - 1;
+		if (x < 0) x = 0;
+		if (y < 0) y = 0;
+		gray = image.at<uchar>(x, y);
+		circle(points, cv::Point(y, x), raio_slider, CV_RGB(gray, gray, gray), -1, CV_AA);
+	}
+}
+----
+
+Usando a detecção de bordas do canny que foi executada no início dessa função, desenhamos círculos de raio 'raio_edge' no pontos onde tem aresta e ao final 'somamos' as duas imagens numa operação de OR lógico.
+
+[source,cpp]
+----
+borderpoints = Mat(height, width, CV_8U, Scalar(0));
+
+for (int x = 0; x < height; x++) {
+	for (int y = 0; y < width; y++) {
+		if (border.at<uchar>(x, y) == 255) {
+			//if (25 > (rand() % 100)) {
+				gray = image.at<uchar>(x, y);
+				circle(borderpoints, cv::Point(y, x), raio_edge, CV_RGB(gray, gray, gray), -1, CV_AA);
+			//}
+		}
+	}
+}
+imshow("Teste", borderpoints|points);
+----
