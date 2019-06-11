@@ -1735,7 +1735,8 @@ int main(int argc, char** argv) {
 
 	waitKey(0);
 	return 0;
-}----
+}
+----
 
 Para a compilação e execução foi usado o Visual Studio Comunity e os parâmetros de controle do filtro podem ser modificados usando o teclado durante a execução do programa
 
